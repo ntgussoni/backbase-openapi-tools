@@ -70,7 +70,7 @@ class BoatSpringTemplatesTests {
     }
 
     static class Combination {
-        static final List<String> CASES = asList("flx", "unq", "val", "opt", "req", "lmb", "nbl", "wth", "utl");
+        static final List<String> CASES = asList("flx", "unq", "val", "opt", "req", "lmb", "nbl", "wth", "utl", "obj");
 
         final String name;
 
@@ -82,6 +82,7 @@ class BoatSpringTemplatesTests {
         final boolean openApiNullable;
         final boolean useSetForUniqueItems;
         final boolean useWithModifiers;
+        final int beanParamTrigger;
 
         final boolean reactive;
         final boolean apiUtil;
@@ -101,6 +102,7 @@ class BoatSpringTemplatesTests {
             this.openApiNullable = (mask & 1 << CASES.indexOf("nbl")) != 0;
             this.useSetForUniqueItems = (mask & 1 << CASES.indexOf("unq")) != 0;
             this.useWithModifiers = (mask & 1 << CASES.indexOf("wth")) != 0;
+            this.beanParamTrigger = (mask & 1 << CASES.indexOf("obj")) != 0 ? 1 : 0;
             this.reactive = (mask & 1 << CASES.indexOf("flx")) != 0;
             this.apiUtil = (mask & 1 << CASES.indexOf("utl")) != 0;
         }
@@ -269,9 +271,9 @@ class BoatSpringTemplatesTests {
         GlobalSettings.setProperty(CodegenConstants.MODEL_DOCS, "true");
 
         if (this.param.apiUtil) {
-            GlobalSettings.setProperty(CodegenConstants.SUPPORTING_FILES, "ApiUtil.java,pom.xml");
+            GlobalSettings.setProperty(CodegenConstants.SUPPORTING_FILES, "ApiUtil.java,InitBinderAdvice.java,pom.xml");
         } else {
-            GlobalSettings.setProperty(CodegenConstants.SUPPORTING_FILES, "pom.xml");
+            GlobalSettings.setProperty(CodegenConstants.SUPPORTING_FILES, "InitBinderAdvice.java,pom.xml");
         }
 
         gcf.setApiNameSuffix("-api");
@@ -286,6 +288,7 @@ class BoatSpringTemplatesTests {
         gcf.addAdditionalProperty(BoatSpringCodeGen.USE_SET_FOR_UNIQUE_ITEMS, this.param.useSetForUniqueItems);
         gcf.addAdditionalProperty(BoatSpringCodeGen.OPENAPI_NULLABLE, this.param.openApiNullable);
         gcf.addAdditionalProperty(BoatSpringCodeGen.USE_WITH_MODIFIERS, this.param.useWithModifiers);
+        gcf.addAdditionalProperty(BoatSpringCodeGen.BEAN_PARAM_TRIGGER, this.param.beanParamTrigger);
         gcf.addAdditionalProperty(SpringCodegen.REACTIVE, this.param.reactive);
 
         final String destPackage = this.param.name.replace('-', '.') + ".";

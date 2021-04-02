@@ -1,24 +1,37 @@
 package com.backbase.oss.codegen.java;
 
-import com.samskivert.mustache.Mustache;
-import com.samskivert.mustache.Template.Fragment;
-import java.io.IOException;
-import java.io.Writer;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import java.util.stream.IntStream;
+import static org.openapitools.codegen.utils.StringUtils.camelize;
+
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.parser.util.SchemaTypeUtil;
 import lombok.Getter;
 import lombok.Setter;
+
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Mustache.Lambda;
+import com.samskivert.mustache.Template.Fragment;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.List;
+import java.util.stream.IntStream;
+
 import org.apache.commons.lang3.StringUtils;
+import org.mapstruct.factory.Mappers;
 import org.openapitools.codegen.CliOption;
 import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.CodegenModel;
+import org.openapitools.codegen.CodegenOperation;
 import org.openapitools.codegen.CodegenParameter;
 import org.openapitools.codegen.CodegenProperty;
+import org.openapitools.codegen.SupportingFile;
 import org.openapitools.codegen.config.GlobalSettings;
 import org.openapitools.codegen.languages.SpringCodegen;
 import org.openapitools.codegen.templating.mustache.IndentedLambda;
-import static org.openapitools.codegen.utils.StringUtils.camelize;
 
 public class BoatSpringCodeGen extends SpringCodegen {
     public static final String NAME = "boat-spring";
@@ -29,6 +42,8 @@ public class BoatSpringCodeGen extends SpringCodegen {
     public static final String USE_SET_FOR_UNIQUE_ITEMS = "useSetForUniqueItems";
     public static final String OPENAPI_NULLABLE = "openApiNullable";
     public static final String USE_WITH_MODIFIERS = "useWithModifiers";
+    public static final String BEAN_PARAM_TRIGGER = "beanParamTrigger";
+
     public static final String BASE_TYPE = "java.util.Set";
 
     static class NewLineIndent implements Mustache.Lambda {
@@ -81,6 +96,8 @@ public class BoatSpringCodeGen extends SpringCodegen {
         }
     }
 
+    protected final CodeGenMapper mapper = Mappers.getMapper(CodeGenMapper.class);
+
     /**
      * Add @Validated to class-level Api interfaces. Defaults to false
      */
@@ -120,6 +137,8 @@ public class BoatSpringCodeGen extends SpringCodegen {
     @Getter
     protected boolean useWithModifiers;
 
+    private int beanParamTrigger = 0;
+
     public BoatSpringCodeGen() {
         this.embeddedTemplateDir = this.templateDir = NAME;
 
@@ -135,6 +154,9 @@ public class BoatSpringCodeGen extends SpringCodegen {
             "Enable OpenAPI Jackson Nullable library", this.openApiNullable));
         this.cliOptions.add(CliOption.newBoolean(USE_WITH_MODIFIERS,
             "Whether to use \"with\" prefix for POJO modifiers", this.useWithModifiers));
+        this.cliOptions.add(new CliOption(BEAN_PARAM_TRIGGER,
+            "The number of method parameter that will trigger the use of a bean param",
+            SchemaTypeUtil.INTEGER_TYPE));
 
         this.apiNameSuffix = "Api";
     }
@@ -156,6 +178,14 @@ public class BoatSpringCodeGen extends SpringCodegen {
     }
 
     @Override
+    public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, List<Server> servers) {
+        final CodegenOperation op = super.fromOperation(path, httpMethod, operation, servers);
+        final CodeGenOperationEx ex = mapper.extendCodeGenOperation(op, beanParamTrigger);
+
+        return ex;
+    }
+
+    @Override
     public void processOpts() {
         super.processOpts();
 
@@ -170,14 +200,14 @@ public class BoatSpringCodeGen extends SpringCodegen {
         final String supFiles = GlobalSettings.getProperty(CodegenConstants.SUPPORTING_FILES);
         final boolean useApiUtil =
             supFiles == null
-                ? false // cleared by <generateSuportingFiles>false</generateSuportingFiles>
+            ? false // cleared by <generateSuportingFiles>false</generateSuportingFiles>
                 : supFiles.isEmpty()
-                    ? needApiUtil() // set to empty by <generateSuportingFiles>true</generateSuportingFiles>
+                ? needApiUtil() // set to empty by <generateSuportingFiles>true</generateSuportingFiles>
                     : supFiles.contains("ApiUtil.java"); // set by <supportingFilesToGenerate/>
 
         if (!useApiUtil) {
             this.supportingFiles
-                .removeIf(sf -> "apiUtil.mustache".equals(sf.templateFile));
+            .removeIf(sf -> "apiUtil.mustache".equals(sf.templateFile));
         }
 
         writePropertyBack("useApiUtil", useApiUtil);
@@ -200,6 +230,15 @@ public class BoatSpringCodeGen extends SpringCodegen {
         if (this.additionalProperties.containsKey(USE_WITH_MODIFIERS)) {
             this.useWithModifiers = convertPropertyToBoolean(USE_WITH_MODIFIERS);
         }
+        if (this.additionalProperties.containsKey(BEAN_PARAM_TRIGGER)) {
+            this.beanParamTrigger = (int) additionalProperties.get(BEAN_PARAM_TRIGGER);
+        }
+
+        if (beanParamTrigger > 0) {
+            supportingFiles.add(new SupportingFile("initBinder.mustache",
+                (sourceFolder + File.separator + apiPackage).replace(".", java.io.File.separator),
+                "InitBinderAdvice.java"));
+        }
 
         writePropertyBack(USE_CLASS_LEVEL_BEAN_VALIDATION, this.useClassLevelBeanValidation);
         writePropertyBack(ADD_SERVLET_REQUEST, this.addServletRequest);
@@ -219,6 +258,7 @@ public class BoatSpringCodeGen extends SpringCodegen {
         this.additionalProperties.put("newLine4", new NewLineIndent(4, " "));
         this.additionalProperties.put("indent8", new IndentedLambda(8, " "));
         this.additionalProperties.put("newLine8", new NewLineIndent(8, " "));
+        this.additionalProperties.put("CamelCase", (Lambda) (frag, out) -> out.write(camelize(frag.execute(), false)));
     }
 
     @Override

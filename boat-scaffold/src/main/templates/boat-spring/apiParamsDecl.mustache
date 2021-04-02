@@ -1,0 +1,37 @@
+{{#useBeanParam}}{{#indent8}}
+
+{{operationIdCamelCase}}Request beanParam{{#pathParams}},
+
+{{>pathParams}}{{/pathParams}}{{#headerParams}},
+
+{{>headerParams}}{{/headerParams}}{{#cookieParams}},
+
+{{>cookieParams}}{{/cookieParams}}{{#formParams}},
+
+{{>formParams}}{{/formParams}}{{#bodyParams}},
+
+{{>bodyParams}}{{/bodyParams}}{{#addServletRequest}},
+
+HttpServletRequest servletRequest{{/addServletRequest}}{{#reactive}},
+
+ServerWebExchange exchange{{/reactive}}
+{{/indent8}}{{/useBeanParam}}{{!
+}}{{^useBeanParam}}
+    {{#allParams}}
+        {{>queryParams}}
+        {{>pathParams}}
+        {{>headerParams}}
+        {{>bodyParams}}
+        {{>formParams}}
+        {{>cookieParams}}
+        {{#hasMore}}, {{/hasMore}}
+        {{^hasMore}}
+            {{#reactive}}, {{/reactive}}
+            {{^reactive}}{{#addServletRequest}}, {{/addServletRequest}}{{/reactive}}
+        {{/hasMore}}
+    {{/allParams}}
+    {{#addServletRequest}}
+        HttpServletRequest servletRequest{{#reactive}}, {{/reactive}}
+    {{/addServletRequest}}
+    {{#reactive}}ServerWebExchange exchange{{/reactive}}{{!
+}}{{/useBeanParam}}

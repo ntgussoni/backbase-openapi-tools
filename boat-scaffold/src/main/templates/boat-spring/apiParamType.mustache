@@ -1,0 +1,16 @@
+
+{{#useLombokAnnotations}}//@lombok.Getter
+{{/useLombokAnnotations}}
+class {{operationIdCamelCase}}Request {
+    private {{operationIdCamelCase}}Request(){}
+    {{#queryParams}}
+    {{#useBeanValidation}}{{#required}}@NotNull{{/required}}{{/useBeanValidation}}{{>deprecatedParam}}
+    private {{>optionalDataType}} {{paramName}};
+
+    {{^useLombokAnnotations}}
+    public {{>optionalDataType}} get{{#CamelCase}}{{paramName}}{{/CamelCase}}() {
+        return this.{{paramName}};
+    }
+    {{/useLombokAnnotations}}
+    {{/queryParams}}
+}

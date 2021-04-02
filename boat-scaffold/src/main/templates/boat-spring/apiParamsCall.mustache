@@ -1,0 +1,3 @@
+/* {{beanParamTrigger}}/{{useBeanParam}} */
+{{#useBeanParam}}request{{/useBeanParam}}
+{{^useBeanParam}}/* apiParamsCall */{{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}{{/useBeanParam}}{{#reactive}}{{#hasParams}}, {{/hasParams}}exchange{{/reactive}}
