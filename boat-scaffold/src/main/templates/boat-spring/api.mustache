@@ -3,7 +3,6 @@ Boat Generator configuration:
     useBeanValidation: {{useBeanValidation}}
     useOptional: {{useOptional}}
     addServletRequest: {{addServletRequest}}
-    addBindingResult: {{addBindingResult}}
     useLombokAnnotations: {{useLombokAnnotations}}
     openApiNullable: {{openApiNullable}}
     useSetForUniqueItems: {{useSetForUniqueItems}}
@@ -69,9 +68,6 @@ import java.io.IOException;
 {{#addServletRequest}}
 import javax.servlet.http.HttpServletRequest;
 {{/addServletRequest}}
-{{#addBindingResult}}
-import org.springframework.validation.BindingResult;
-{{/addBindingResult}}
 {{#useBeanValidation}}
 import javax.validation.Valid;
 import javax.validation.constraints.*;

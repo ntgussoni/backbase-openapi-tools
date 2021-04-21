@@ -19,15 +19,7 @@ The project is very much Work In Progress and will be published on maven central
 # Release Notes
 BOAT is still under development and subject to change.
 
-## 0.14.2
-* *Angular Generator*
-  * Added support for Angular version ranges in peer dependencies
-  
-## 0.14.1
-* *Angular Generator*
-  * Added support for Angular 11
-  
-## 0.14.0
+## 0.14.0 (not released)
 * *Angular Generator*
   * Simplify Angular generator options by removing the unused ones (withInterfaces,providedInRoot)
   * fix Mock is not generated if Http status equals to 201 (SDK-2388)
@@ -626,7 +618,6 @@ For the `spring` generator, the additional configuration options are:
 | `useClassLevelBeanValidation` | Adds @Validated annotation to API interfaces (Default: false) |
 | `useLombokAnnotations` | Use Lombok annotations to generate properties accessors and `hashCode`/`equals` methods (Default: false) |
 | `addServletRequest` | Adds ServletRequest objects to API method definitions (Default: false) |
-| `addBindingResult` | Adds BindingResult to Api method definitions' request bodies if UseBeanValidation true, for this to be effective you must configure UseBeanValidation, this is not done automatically (Default: false)|
 | `implicitHeaders` | Skip header parameters in the generated API methods using @ApiImplicitParams annotation. (Default: false) |
 | `swaggerDocketConfig` | Generate Spring OpenAPI Docket configuration class. (Default: false) |
 | `apiFirst` | Generate the API from the OAI spec at server compile time (API first approach) (Default: false) |
